@@ -1,10 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
-
-interface CreateUserDTO {
-  name: string;
-  email: string;
-  password: string;
-}
+import type { CreateUserDTO } from "./dtos/create-user.dto.js";
+import type { UpdateUserDto } from "./dtos/update-user.dto.js";
 
 async function create(user: CreateUserDTO) {
   const createdUser = await prisma.user.create({
@@ -25,4 +21,31 @@ async function create(user: CreateUserDTO) {
   return createdUser;
 }
 
-export { create };
+async function update(user: UpdateUserDto, id: string) {
+  const data: any = {};
+
+  if (user.name) data.name = user.name;
+  if (user.email) data.email = user.email;
+  if (user.password) data.password = user.password;
+
+  const updateUser = await prisma.user.update({
+    where: {
+      id,
+    },
+    data,
+  });
+
+  return updateUser;
+}
+
+async function findByEmail(email: string) {
+  const result = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  return result;
+}
+
+export { create, update, findByEmail };
