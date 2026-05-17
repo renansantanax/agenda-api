@@ -2,8 +2,19 @@ import { prisma } from "../../lib/prisma.js";
 import type { CreateUserDTO } from "./dtos/create-user.dto.js";
 import type { UpdateUserDto } from "./dtos/update-user.dto.js";
 
+async function getAll() {
+  return prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
+    },
+  });
+}
+
 async function create(user: CreateUserDTO) {
-  const createdUser = await prisma.user.create({
+  return prisma.user.create({
     data: {
       name: user.name,
       email: user.email,
@@ -17,35 +28,43 @@ async function create(user: CreateUserDTO) {
       createdAt: true,
     },
   });
-
-  return createdUser;
 }
 
-async function update(user: UpdateUserDto, id: string) {
+async function update(id: string, user: UpdateUserDto) {
   const data: any = {};
 
   if (user.name) data.name = user.name;
   if (user.email) data.email = user.email;
   if (user.password) data.password = user.password;
 
-  const updateUser = await prisma.user.update({
+  return prisma.user.update({
     where: {
       id,
     },
     data,
   });
-
-  return updateUser;
 }
 
 async function findByEmail(email: string) {
-  const result = await prisma.user.findUnique({
+  return prisma.user.findUnique({
     where: {
       email,
     },
   });
-
-  return result;
 }
 
-export { create, update, findByEmail };
+async function findById(id: string) {
+  return prisma.user.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
+    },
+  });
+}
+
+export { create, update, findByEmail, findById, getAll };

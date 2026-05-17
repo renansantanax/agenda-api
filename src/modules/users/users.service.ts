@@ -1,13 +1,18 @@
 import bcrypt from "bcryptjs";
-import { create, findByEmail } from "./users.repository.js";
+import * as usersRepository from "./users.repository.js";
 import type { CreateUserDTO } from "./dtos/create-user.dto.js";
+import type { UpdateUserDto } from "./dtos/update-user.dto.js";
+
+async function getAllUsers() {
+  return usersRepository.getAll();
+}
 
 async function createUser(user: CreateUserDTO) {
   if (!user.name || !user.email || !user.password) {
     throw new Error("Nome, email e senha são obrigatórios");
   }
 
-  const userExists = await findByEmail(user.email);
+  const userExists = await usersRepository.findByEmail(user.email);
 
   if (userExists) {
     throw new Error("Já existe um usuário cadastrado com esse email");
@@ -21,7 +26,34 @@ async function createUser(user: CreateUserDTO) {
     password: encryptedPassword,
   };
 
-  return create(newUser);
+  return usersRepository.create(newUser);
 }
 
-export { createUser };
+async function updateUser(id: string, user: UpdateUserDto) {
+  if (!id) {
+    throw new Error("id é obrigatório");
+  }
+
+  const userExists = await usersRepository.findById(id);
+
+  if (!userExists) {
+    throw new Error("Usuário não encontrado.");
+  }
+
+  if (!user.name && !user.email && !user.password) {
+    throw new Error("Nenhum dado informado para atualização");
+  }
+
+  const data: UpdateUserDto = {
+    ...(user.name && { name: user.name }),
+    ...(user.email && { email: user.email }),
+  };
+
+  if (user.password) {
+    data.password = await bcrypt.hash(user.password, 10);
+  }
+
+  return usersRepository.update(id, data);
+}
+
+export { createUser, updateUser, getAllUsers };
