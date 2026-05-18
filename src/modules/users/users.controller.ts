@@ -2,6 +2,7 @@ import * as usersService from "./users.service.js";
 import type { CreateUserDTO } from "./dtos/create-user.dto.js";
 import type { UpdateUserDto } from "./dtos/update-user.dto.js";
 import type { Request, Response } from "express";
+import { createUserSchema } from "./schemas/create-user.schema.js";
 
 interface Params {
   id: string;
@@ -20,13 +21,7 @@ async function getAll(req: Request, res: Response) {
 
 async function create(req: Request, res: Response) {
   try {
-    const dto: CreateUserDTO = {
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-    };
-
-    const user = await usersService.createUser(dto);
+    const user = await usersService.createUser(req.body);
     res.status(201).json({
       message: "Usuário criado com sucesso",
       user,

@@ -13,6 +13,20 @@ async function getAll() {
   });
 }
 
+async function getById(id: string) {
+  return prisma.user.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
+    },
+  });
+}
+
 async function create(user: CreateUserDTO) {
   return prisma.user.create({
     data: {
@@ -67,4 +81,4 @@ async function findById(id: string) {
   });
 }
 
-export { create, update, findByEmail, findById, getAll };
+export { create, update, findByEmail, findById, getAll, getById };

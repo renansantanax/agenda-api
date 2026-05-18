@@ -7,11 +7,20 @@ async function getAllUsers() {
   return usersRepository.getAll();
 }
 
-async function createUser(user: CreateUserDTO) {
-  if (!user.name || !user.email || !user.password) {
-    throw new Error("Nome, email e senha são obrigatórios");
+async function getUser(id: string) {
+  if (!id) {
+    throw new Error("Id é obrigatório.");
+  }
+  const user = await usersRepository.getById(id);
+
+  if (!user) {
+    throw new Error("Nenhum usuário foi encontrado com esse ID.");
   }
 
+  return user;
+}
+
+async function createUser(user: CreateUserDTO) {
   const userExists = await usersRepository.findByEmail(user.email);
 
   if (userExists) {
