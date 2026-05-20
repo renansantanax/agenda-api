@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma.js";
 import type { CreateUserDTO } from "./dtos/create-user.dto.js";
 import type { UpdateUserDto } from "./dtos/update-user.dto.js";
 
-async function getAll() {
+async function findAll() {
   return prisma.user.findMany({
     select: {
       id: true,
@@ -13,21 +13,7 @@ async function getAll() {
   });
 }
 
-async function getById(id: string) {
-  return prisma.user.findUnique({
-    where: {
-      id,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true,
-    },
-  });
-}
-
-async function create(user: CreateUserDTO) {
+async function create(user: { name: string; email: string; password: string }) {
   return prisma.user.create({
     data: {
       name: user.name,
@@ -44,18 +30,29 @@ async function create(user: CreateUserDTO) {
   });
 }
 
-async function update(id: string, user: UpdateUserDto) {
-  const data: any = {};
-
-  if (user.name) data.name = user.name;
-  if (user.email) data.email = user.email;
-  if (user.password) data.password = user.password;
-
+async function update(
+  id: string,
+  user: { name?: string; email?: string; password?: string },
+) {
   return prisma.user.update({
     where: {
       id,
     },
-    data,
+    data: user,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
+    },
+  });
+}
+
+async function remove(id: string) {
+  return prisma.user.delete({
+    where: {
+      id,
+    },
   });
 }
 
@@ -81,4 +78,4 @@ async function findById(id: string) {
   });
 }
 
-export { create, update, findByEmail, findById, getAll, getById };
+export { create, update, findByEmail, findById, findAll, remove };

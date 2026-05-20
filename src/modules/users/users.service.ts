@@ -1,17 +1,17 @@
 import bcrypt from "bcryptjs";
 import * as usersRepository from "./users.repository.js";
 import type { CreateUserDTO } from "./dtos/create-user.dto.js";
-import type { UpdateUserDto } from "./dtos/update-user.dto.js";
+import type { UpdateUserDto } from "./schemas/update-user.schema.js";
 
 async function getAllUsers() {
-  return usersRepository.getAll();
+  return usersRepository.findAll();
 }
 
-async function getUser(id: string) {
+async function getUserById(id: string) {
   if (!id) {
     throw new Error("Id é obrigatório.");
   }
-  const user = await usersRepository.getById(id);
+  const user = await usersRepository.findById(id);
 
   if (!user) {
     throw new Error("Nenhum usuário foi encontrado com esse ID.");
@@ -39,21 +39,13 @@ async function createUser(user: CreateUserDTO) {
 }
 
 async function updateUser(id: string, user: UpdateUserDto) {
-  if (!id) {
-    throw new Error("id é obrigatório");
-  }
-
   const userExists = await usersRepository.findById(id);
 
   if (!userExists) {
     throw new Error("Usuário não encontrado.");
   }
 
-  if (!user.name && !user.email && !user.password) {
-    throw new Error("Nenhum dado informado para atualização");
-  }
-
-  const data: UpdateUserDto = {
+  const data: { name?: string; email?: string; password?: string } = {
     ...(user.name && { name: user.name }),
     ...(user.email && { email: user.email }),
   };
@@ -65,4 +57,12 @@ async function updateUser(id: string, user: UpdateUserDto) {
   return usersRepository.update(id, data);
 }
 
-export { createUser, updateUser, getAllUsers };
+async function deleteUser(id: string) {
+  const userExists = await usersRepository.findById(id);
+  if (!userExists) {
+    throw new Error("Usuário não encontrado.");
+  }
+  return usersRepository.remove(id);
+}
+
+export { createUser, updateUser, getAllUsers, getUserById, deleteUser };

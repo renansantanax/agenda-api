@@ -1,14 +1,8 @@
 import * as usersService from "./users.service.js";
-import type { CreateUserDTO } from "./dtos/create-user.dto.js";
-import type { UpdateUserDto } from "./dtos/update-user.dto.js";
+import type { UpdateUserDto } from "./schemas/update-user.schema.js";
 import type { Request, Response } from "express";
-import { createUserSchema } from "./schemas/create-user.schema.js";
 
-interface Params {
-  id: string;
-}
-
-async function getAll(req: Request, res: Response) {
+async function handleGetAll(req: Request, res: Response) {
   try {
     const users = await usersService.getAllUsers();
     res.status(200).json(users);
@@ -19,7 +13,24 @@ async function getAll(req: Request, res: Response) {
   }
 }
 
-async function create(req: Request, res: Response) {
+async function handleGetById(req: Request, res: Response) {
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string") {
+    return res.status(400).json({ message: "Id é obrigatório" });
+  }
+  try {
+    const user = await usersService.getUserById(id);
+
+    res.status(200).json(user);
+  } catch (error) {
+    return res.status(400).json({
+      message: error instanceof Error ? error.message : "Erro interno",
+    });
+  }
+}
+
+async function handleCreateUser(req: Request, res: Response) {
   try {
     const user = await usersService.createUser(req.body);
     res.status(201).json({
@@ -33,18 +44,15 @@ async function create(req: Request, res: Response) {
   }
 }
 
-async function update(req: Request<Params>, res: Response) {
+async function handleUpdateUser(req: Request, res: Response) {
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string") {
+    return res.status(400).json({ message: "Id é obrigatório" });
+  }
+
   try {
-    const id = req.params.id;
-
-    const dto: UpdateUserDto = {
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-    };
-
-    const updatedUser = await usersService.updateUser(id, dto);
-
+    const updatedUser = await usersService.updateUser(id, req.body);
     res.status(200).json(updatedUser);
   } catch (error) {
     return res.status(400).json({
@@ -53,4 +61,25 @@ async function update(req: Request<Params>, res: Response) {
   }
 }
 
-export { create, update, getAll };
+async function handleDeleteUser(req: Request, res: Response) {
+  const id = req.params.id;
+  if (!id || typeof id !== "string") {
+    return res.status(400).json({ message: "Id é obrigatório" });
+  }
+
+  try {
+    await usersService.deleteUser(id);
+    res.status(200).json({ message: "Usuário deletado com sucesso" });
+  } catch (error) {
+    return res.status(400).json({
+      message: error instanceof Error ? error.message : "Erro interno",
+    });
+  }
+}
+export {
+  handleGetAll,
+  handleGetById,
+  handleCreateUser,
+  handleUpdateUser,
+  handleDeleteUser,
+};
