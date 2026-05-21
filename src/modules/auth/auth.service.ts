@@ -24,4 +24,13 @@ async function login(email: string, password: string) {
   return { token };
 }
 
-export { login };
+const getMe = async (id: string) => {
+  const user = await usersRepository.findById(id);
+
+  if (!user) {
+    throw new Error("Usuário não encontrado");
+  }
+  return user;
+};
+
+export { login, getMe };

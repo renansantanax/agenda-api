@@ -19,13 +19,9 @@ export function isAuthenticated(
 ) {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res
-      .status(401)
-      .json({ message: "Token de autenticação ausente ou inválido" });
-  }
-
-  const token = authHeader.split(" ")[1];
+  const token = authHeader?.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : req.cookies?.user;
 
   if (!token) {
     return res

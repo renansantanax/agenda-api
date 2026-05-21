@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import * as usersRepository from "./users.repository.js";
-import type { CreateUserDTO } from "./dtos/create-user.dto.js";
-import type { UpdateUserDto } from "./schemas/update-user.schema.js";
+import type { UpdateUserDto, CreateUserDto } from "./users.schema.js";
 
 async function getAllUsers() {
   return usersRepository.findAll();
@@ -20,7 +19,7 @@ async function getUserById(id: string) {
   return user;
 }
 
-async function createUser(user: CreateUserDTO) {
+async function createUser(user: CreateUserDto) {
   const userExists = await usersRepository.findByEmail(user.email);
 
   if (userExists) {

@@ -1,5 +1,4 @@
 import * as usersService from "./users.service.js";
-import type { UpdateUserDto } from "./schemas/update-user.schema.js";
 import type { Request, Response } from "express";
 
 async function handleGetAll(req: Request, res: Response) {

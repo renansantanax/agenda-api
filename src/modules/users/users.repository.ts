@@ -1,6 +1,4 @@
 import { prisma } from "../../lib/prisma.js";
-import type { CreateUserDTO } from "./dtos/create-user.dto.js";
-import type { UpdateUserDto } from "./dtos/update-user.dto.js";
 
 async function findAll() {
   return prisma.user.findMany({
