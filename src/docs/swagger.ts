@@ -1,7 +1,11 @@
+// swagger.ts
+// Cole esse arquivo em src/docs/swagger.ts
+// Instale as dependências:
+//   npm install swagger-ui-express
+//   npm install -D @types/swagger-ui-express
+
 import swaggerUi from "swagger-ui-express";
 import type { Express } from "express";
-
-const port = process.env.PORT || 3333;
 
 const swaggerDocument = {
   openapi: "3.0.0",
@@ -13,7 +17,7 @@ const swaggerDocument = {
   },
   servers: [
     {
-      url: `http://localhost:${port}/api`,
+      url: "http://localhost:3333/api",
       description: "Servidor local",
     },
   ],
@@ -65,6 +69,32 @@ const swaggerDocument = {
             example: "joao.novo@email.com",
           },
           password: { type: "string", minLength: 6, example: "novasenha123" },
+        },
+      },
+      // ─── Client ─────────────────────────────────────────────
+      ClientResponse: {
+        type: "object",
+        properties: {
+          id: { type: "integer", example: 1 },
+          name: { type: "string", example: "Maria Silva" },
+          phone: { type: "string", example: "11999999999" },
+          active: { type: "boolean", example: true },
+        },
+      },
+      CreateClientBody: {
+        type: "object",
+        required: ["name", "phone"],
+        properties: {
+          name: { type: "string", example: "Maria Silva" },
+          phone: { type: "string", example: "11999999999" },
+        },
+      },
+      UpdateClientBody: {
+        type: "object",
+        description: "Pelo menos um campo deve ser informado.",
+        properties: {
+          name: { type: "string", example: "Maria Santos" },
+          phone: { type: "string", example: "11988888888" },
         },
       },
       // ─── Auth ───────────────────────────────────────────────
@@ -150,11 +180,258 @@ const swaggerDocument = {
         },
       },
     },
+    "/auth/logout": {
+      post: {
+        tags: ["Auth"],
+        summary: "Logout — invalida o cookie de sessão",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Logout realizado com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Logout realizado com sucesso",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Não autorizado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/auth/me": {
+      get: {
+        tags: ["Auth"],
+        summary: "Retorna os dados do usuário autenticado",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Dados do usuário logado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/UserResponse" },
+              },
+            },
+          },
+          401: {
+            description: "Token ausente ou inválido",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+          404: {
+            description: "Usuário não encontrado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+        },
+      },
+    },
+    // ─── Clients ────────────────────────────────────────────────────────────
+    "/clients": {
+      get: {
+        tags: ["Clients"],
+        summary: "Listar todos os clientes ativos",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Lista de clientes retornada com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/ClientResponse" },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Não autorizado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ["Clients"],
+        summary: "Criar um novo cliente",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CreateClientBody" },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Cliente criado com sucesso",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ClientResponse" },
+              },
+            },
+          },
+          400: {
+            description: "Dados inválidos",
+            content: {
+              "application/json": {
+                schema: {
+                  oneOf: [
+                    { $ref: "#/components/schemas/ValidationError" },
+                    { $ref: "#/components/schemas/ErrorMessage" },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/clients/{id}": {
+      get: {
+        tags: ["Clients"],
+        summary: "Buscar cliente por ID",
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+            example: 1,
+          },
+        ],
+        responses: {
+          200: {
+            description: "Cliente encontrado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ClientResponse" },
+              },
+            },
+          },
+          400: {
+            description: "Cliente não encontrado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        tags: ["Clients"],
+        summary: "Atualizar um cliente",
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+            example: 1,
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateClientBody" },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Cliente atualizado com sucesso",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ClientResponse" },
+              },
+            },
+          },
+          400: {
+            description: "Dados inválidos ou cliente não encontrado",
+            content: {
+              "application/json": {
+                schema: {
+                  oneOf: [
+                    { $ref: "#/components/schemas/ValidationError" },
+                    { $ref: "#/components/schemas/ErrorMessage" },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ["Clients"],
+        summary: "Desativar um cliente (soft delete)",
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+            example: 1,
+          },
+        ],
+        responses: {
+          200: {
+            description: "Cliente desativado com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Cliente desativado com sucesso",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Cliente não encontrado ou já desativado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+        },
+      },
+    },
     // ─── Users ──────────────────────────────────────────────────────────────
     "/users": {
       get: {
         tags: ["Users"],
         summary: "Listar todos os usuários",
+        security: [{ bearerAuth: [] }],
         responses: {
           200: {
             description: "Lista de usuários retornada com sucesso",
@@ -343,5 +620,5 @@ const swaggerDocument = {
 
 export function setupSwagger(app: Express) {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-  console.log(`📄 Swagger disponível em http://localhost:${port}/api/docs`);
+  console.log("📄 Swagger disponível em http://localhost:3333/api/docs");
 }

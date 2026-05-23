@@ -2,10 +2,8 @@ import { prisma } from "../../lib/prisma.js";
 
 export async function findAll() {
   return prisma.client.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
+    where: {
+      active: true,
     },
   });
 }
@@ -42,7 +40,7 @@ export async function update(
 }
 
 export async function findByName(name: string) {
-  return prisma.user.findMany({
+  return prisma.user.findFirst({
     where: {
       name: {
         equals: name,
@@ -61,6 +59,18 @@ export async function findById(id: number) {
       id: true,
       name: true,
       phone: true,
+      active: true,
+    },
+  });
+}
+
+export async function deactivate(id: number) {
+  return prisma.client.update({
+    where: {
+      id: id,
+    },
+    data: {
+      active: false,
     },
   });
 }

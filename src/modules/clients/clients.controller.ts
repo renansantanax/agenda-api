@@ -13,7 +13,7 @@ export async function handleGetAll(req: Request, res: Response) {
 }
 
 export async function handleGetById(req: Request, res: Response) {
-  const id = req.params.id;
+  const id = Number(req.params.id);
 
   if (!id || typeof id !== "number") {
     return res.status(400).json({ message: "Id é obrigatório" });
@@ -44,7 +44,7 @@ export async function handleCreateClient(req: Request, res: Response) {
 }
 
 export async function handleUpdateClient(req: Request, res: Response) {
-  const id = req.params.id;
+  const id = Number(req.params.id);
 
   if (!id || typeof id !== "number") {
     return res.status(400).json({ message: "Id é obrigatório" });
@@ -53,6 +53,26 @@ export async function handleUpdateClient(req: Request, res: Response) {
   try {
     const updatedClient = await clientsService.updateClient(id, req.body);
     res.status(200).json(updatedClient);
+  } catch (error) {
+    return res.status(400).json({
+      message: error instanceof Error ? error.message : "Erro interno",
+    });
+  }
+}
+
+export async function handleDeactivateClient(req: Request, res: Response) {
+  const id = Number(req.params.id);
+
+  if (!id || typeof id !== "number") {
+    return res.status(400).json({ message: "Id é obrigatório" });
+  }
+
+  try {
+    const deactivateClient = await clientsService.deactivateClient(id);
+    res.status(200).json({
+      message: "Cliente desativado com sucesso!",
+      deactivateClient,
+    });
   } catch (error) {
     return res.status(400).json({
       message: error instanceof Error ? error.message : "Erro interno",
