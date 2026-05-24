@@ -31,7 +31,7 @@ export async function createClient(client: CreateClientDto) {
   return clientsRepository.create(newClient);
 }
 
-export async function updateClient(id: number, user: UpdateClientDto) {
+export async function updateClient(id: number, client: UpdateClientDto) {
   const clientExists = await clientsRepository.findById(id);
 
   if (!clientExists) {
@@ -39,8 +39,8 @@ export async function updateClient(id: number, user: UpdateClientDto) {
   }
 
   const data: { name?: string; phone?: string } = {
-    ...(user.name && { name: user.name }),
-    ...(user.phone && { phone: user.phone }),
+    ...(client.name && { name: client.name }),
+    ...(client.phone && { phone: client.phone }),
   };
 
   return clientsRepository.update(id, data);

@@ -71,6 +71,77 @@ const swaggerDocument = {
           password: { type: "string", minLength: 6, example: "novasenha123" },
         },
       },
+      // ─── Appointment ────────────────────────────────────────
+      AppointmentResponse: {
+        type: "object",
+        properties: {
+          id: { type: "integer", example: 1 },
+          date: {
+            type: "string",
+            format: "date-time",
+            example: "2026-05-23T14:00:00.000Z",
+          },
+          description: {
+            type: "string",
+            example: "Corte + barba",
+            nullable: true,
+          },
+          status: {
+            type: "string",
+            enum: ["PENDING", "DONE", "CANCELLED"],
+            example: "PENDING",
+          },
+          user: {
+            type: "object",
+            properties: {
+              id: {
+                type: "string",
+                format: "uuid",
+                example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              },
+              name: { type: "string", example: "João Silva" },
+            },
+          },
+          client: {
+            type: "object",
+            properties: {
+              id: { type: "integer", example: 1 },
+              name: { type: "string", example: "Maria Silva" },
+              phone: { type: "string", example: "11999999999" },
+            },
+          },
+        },
+      },
+      CreateAppointmentBody: {
+        type: "object",
+        required: ["date", "clientId"],
+        properties: {
+          date: {
+            type: "string",
+            format: "date-time",
+            example: "2026-05-23T14:00:00.000Z",
+          },
+          description: { type: "string", example: "Corte + barba" },
+          clientId: { type: "integer", example: 1 },
+        },
+      },
+      UpdateAppointmentBody: {
+        type: "object",
+        description: "Pelo menos um campo deve ser informado.",
+        properties: {
+          date: {
+            type: "string",
+            format: "date-time",
+            example: "2026-05-24T10:00:00.000Z",
+          },
+          description: { type: "string", example: "Manicure" },
+          status: {
+            type: "string",
+            enum: ["PENDING", "DONE", "CANCELLED"],
+            example: "DONE",
+          },
+        },
+      },
       // ─── Client ─────────────────────────────────────────────
       ClientResponse: {
         type: "object",
@@ -606,6 +677,235 @@ const swaggerDocument = {
           },
           400: {
             description: "ID inválido ou usuário não encontrado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+        },
+      },
+    },
+    // ─── Appointments ───────────────────────────────────────────────────────
+    "/appointments": {
+      get: {
+        tags: ["Appointments"],
+        summary: "Listar todos os agendamentos",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Lista de agendamentos retornada com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/AppointmentResponse" },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Não autorizado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ["Appointments"],
+        summary: "Criar um novo agendamento",
+        description: "O userId é extraído automaticamente do token JWT.",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CreateAppointmentBody" },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Agendamento criado com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Agendamento criado com sucesso",
+                    },
+                    appointment: {
+                      $ref: "#/components/schemas/AppointmentResponse",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description:
+              "Dados inválidos, cliente não encontrado ou desativado",
+            content: {
+              "application/json": {
+                schema: {
+                  oneOf: [
+                    { $ref: "#/components/schemas/ValidationError" },
+                    { $ref: "#/components/schemas/ErrorMessage" },
+                  ],
+                },
+              },
+            },
+          },
+          401: {
+            description: "Não autorizado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/appointments/{id}": {
+      get: {
+        tags: ["Appointments"],
+        summary: "Buscar agendamento por ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+            example: 1,
+          },
+        ],
+        responses: {
+          200: {
+            description: "Agendamento encontrado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/AppointmentResponse" },
+              },
+            },
+          },
+          400: {
+            description: "Agendamento não encontrado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+          401: {
+            description: "Não autorizado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        tags: ["Appointments"],
+        summary: "Atualizar um agendamento",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+            example: 1,
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateAppointmentBody" },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Agendamento atualizado com sucesso",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/AppointmentResponse" },
+              },
+            },
+          },
+          400: {
+            description: "Dados inválidos ou agendamento não encontrado",
+            content: {
+              "application/json": {
+                schema: {
+                  oneOf: [
+                    { $ref: "#/components/schemas/ValidationError" },
+                    { $ref: "#/components/schemas/ErrorMessage" },
+                  ],
+                },
+              },
+            },
+          },
+          401: {
+            description: "Não autorizado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        tags: ["Appointments"],
+        summary: "Deletar um agendamento",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "integer" },
+            example: 1,
+          },
+        ],
+        responses: {
+          200: {
+            description: "Agendamento excluído com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Agendamento excluído com sucesso!",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Agendamento não encontrado",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorMessage" },
+              },
+            },
+          },
+          401: {
+            description: "Não autorizado",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/ErrorMessage" },

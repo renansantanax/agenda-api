@@ -3,10 +3,6 @@ import z from "zod";
 export const createAppointmentSchema = z.object({
   date: z.coerce.date(),
   description: z.string().optional(),
-  status: z.enum(["PENDING", "DONE", "CANCELLED"], {
-    message: "Status inválido.",
-  }),
-  userId: z.uuid(),
   clientId: z.number().int().positive("clientId deve ser um número positivo"),
 });
 

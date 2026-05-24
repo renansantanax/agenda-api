@@ -1,7 +1,28 @@
 import { prisma } from "../../lib/prisma.js";
 
 export async function findAll() {
-  return prisma.appointment.findMany();
+  return prisma.appointment.findMany({
+    select: {
+      id: true,
+      date: true,
+      description: true,
+      status: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      client: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+        },
+      },
+    },
+  });
 }
 
 export async function findById(id: number) {
@@ -14,7 +35,7 @@ export async function findById(id: number) {
 
 export async function create(appointment: {
   date: Date;
-  description?: string;
+  description?: string | undefined;
   userId: string;
   clientId: number;
 }) {
@@ -30,7 +51,7 @@ export async function create(appointment: {
   });
 }
 
-async function update(
+export async function update(
   id: number,
   data: {
     date?: Date;

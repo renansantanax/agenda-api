@@ -8,8 +8,8 @@ const router = Router();
 
 router.post(
   "/",
-  validate(createClientSchema),
   isAuthenticated,
+  validate(createClientSchema),
   clientController.handleCreateClient,
 );
 router.get("/", isAuthenticated, clientController.handleGetAll);
